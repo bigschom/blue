@@ -1,0 +1,418 @@
+/* Profile Page Styles */
+
+.profile-container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    background-color: var(--background-color);
+  }
+  
+  .profile-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+  }
+  
+  .profile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .profile-header h1 {
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  .edit-button, 
+  .qr-button,
+  .save-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--surface-alt-color);
+    border: none;
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+    margin-left: var(--spacing-sm);
+  }
+  
+  .edit-button:hover, 
+  .qr-button:hover {
+    background-color: var(--border-color);
+  }
+  
+  .edit-button.cancel {
+    background-color: var(--error-color);
+    color: white;
+  }
+  
+  .edit-button.cancel:hover {
+    background-color: #d63c5e;
+  }
+  
+  .save-button {
+    background-color: var(--success-color);
+    color: white;
+  }
+  
+  .save-button:hover:not(:disabled) {
+    background-color: #259d6d;
+  }
+  
+  .save-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .edit-icon, 
+  .qr-icon,
+  .save-icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .error-message {
+    background-color: rgba(239, 71, 111, 0.1);
+    color: var(--error-color);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+  
+  .profile-avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+  }
+  
+  .profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: var(--spacing-md);
+    position: relative;
+  }
+  
+  .profile-avatar.editable {
+    cursor: pointer;
+  }
+  
+  .profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: var(--text-2xl);
+    font-weight: 600;
+  }
+  
+  .avatar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+  }
+  
+  .profile-avatar:hover .avatar-overlay {
+    opacity: 1;
+  }
+  
+  .camera-icon {
+    width: 32px;
+    height: 32px;
+    color: white;
+  }
+  
+  .profile-form {
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  
+  .form-group {
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .form-label {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    margin-bottom: var(--spacing-xs);
+    color: var(--text-secondary);
+  }
+  
+  .form-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: var(--spacing-xs);
+    color: var(--text-tertiary);
+  }
+  
+  .form-input, 
+  .form-textarea {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--surface-alt-color);
+    color: var(--text-primary);
+    font-size: var(--text-md);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  }
+  
+  .form-input:focus, 
+  .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(58, 134, 255, 0.1);
+  }
+  
+  .form-textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+  
+  .username-input-wrapper {
+    position: relative;
+  }
+  
+  .username-prefix {
+    position: absolute;
+    left: var(--spacing-md);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+  }
+  
+  .username-input {
+    padding-left: calc(var(--spacing-md) + 12px);
+  }
+  
+  .form-value {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--surface-alt-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+  }
+  
+  .username-value, 
+  .email-value {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .bio-value {
+    min-height: 100px;
+    white-space: pre-wrap;
+  }
+  
+  .verified-badge {
+    background-color: var(--success-color);
+    color: white;
+    font-size: var(--text-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-full);
+  }
+  
+  .form-helper {
+    margin-top: var(--spacing-md);
+    color: var(--text-tertiary);
+    font-size: var(--text-sm);
+  }
+  
+  .account-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--spacing-xl);
+  }
+  
+  .action-button {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--surface-alt-color);
+    color: var(--text-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+  }
+  
+  .action-button:hover {
+    background-color: var(--border-color);
+  }
+  
+  .action-button.password-button {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .action-button.password-button:hover {
+    background-color: var(--primary-dark);
+  }
+  
+  /* QR Code View */
+  .qr-view {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .qr-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    width: 100%;
+  }
+  
+  .back-button {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: var(--text-md);
+    cursor: pointer;
+    margin-right: auto;
+  }
+  
+  .back-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: var(--spacing-xs);
+  }
+  
+  .qr-code-container {
+    background-color: white;
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    box-shadow: 0 2px 8px var(--shadow-color);
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .qr-instructions {
+    text-align: center;
+    max-width: 300px;
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .qr-instructions p {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .user-info {
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+  }
+  
+  .user-name {
+    font-weight: 600;
+    font-size: var(--text-lg);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .user-username {
+    color: var(--text-tertiary);
+    font-size: var(--text-md);
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .profile-header h1 {
+      font-size: var(--text-xl);
+    }
+    
+    .edit-button, 
+    .qr-button,
+    .save-button {
+      width: 36px;
+      height: 36px;
+    }
+    
+    .edit-icon, 
+    .qr-icon,
+    .save-icon {
+      width: 18px;
+      height: 18px;
+    }
+    
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+    }
+    
+    .camera-icon {
+      width: 24px;
+      height: 24px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .profile-content {
+      padding: var(--spacing-sm);
+    }
+    
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+    }
+    
+    .camera-icon {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .form-input, 
+    .form-textarea {
+      padding: var(--spacing-xs) var(--spacing-sm);
+      font-size: var(--text-sm);
+    }
+    
+    .form-value {
+      padding: var(--spacing-xs) var(--spacing-sm);
+      font-size: var(--text-sm);
+    }
+    
+    .verified-badge {
+      font-size: calc(var(--text-xs) - 1px);
+      padding: calc(var(--spacing-xs) / 2) var(--spacing-xs);
+    }
+  }

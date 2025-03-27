@@ -1,0 +1,78 @@
+{
+    "expo": {
+      "name": "BlueChat",
+      "slug": "blue-chat",
+      "version": "1.0.0",
+      "orientation": "portrait",
+      "icon": "./assets/icon.png",
+      "userInterfaceStyle": "automatic",
+      "splash": {
+        "image": "./assets/splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#3a86ff"
+      },
+      "assetBundlePatterns": [
+        "**/*"
+      ],
+      "ios": {
+        "supportsTablet": true,
+        "bundleIdentifier": "com.yourcompany.securechat",
+        "buildNumber": "1.0.0",
+        "infoPlist": {
+          "NSCameraUsageDescription": "SecureChat needs access to your camera to scan QR codes and take photos to share.",
+          "NSPhotoLibraryUsageDescription": "SecureChat needs access to your photo library to allow you to share images.",
+          "NSMicrophoneUsageDescription": "SecureChat needs access to your microphone to record voice messages."
+        }
+      },
+      "android": {
+        "package": "com.yourcompany.securechat",
+        "versionCode": 1,
+        "adaptiveIcon": {
+          "foregroundImage": "./assets/adaptive-icon.png",
+          "backgroundColor": "#3a86ff"
+        },
+        "permissions": [
+          "CAMERA",
+          "READ_EXTERNAL_STORAGE",
+          "WRITE_EXTERNAL_STORAGE",
+          "RECORD_AUDIO"
+        ]
+      },
+      "web": {
+        "favicon": "./assets/favicon.png"
+      },
+      "plugins": [
+        [
+          "expo-media-library",
+          {
+            "photosPermission": "SecureChat needs access to your photos to share images.",
+            "savePhotosPermission": "SecureChat needs access to save photos to your gallery.",
+            "isAccessMediaLocationEnabled": true
+          }
+        ],
+        [
+          "expo-camera",
+          {
+            "cameraPermission": "SecureChat needs access to your camera to scan QR codes and take photos."
+          }
+        ],
+        [
+          "expo-document-picker",
+          {
+            "iCloudContainerEnvironment": "Production"
+          }
+        ]
+      ],
+      "extra": {
+        "eas": {
+          "projectId": "your-eas-project-id"
+        }
+      },
+      "runtimeVersion": {
+        "policy": "appVersion"
+      },
+      "updates": {
+        "url": "https://u.expo.dev/your-update-url"
+      }
+    }
+  }
