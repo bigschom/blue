@@ -47,25 +47,136 @@ class E2EEService {
     }
   }
 
-  // Initialize keys if not already set up
-  static async initializeKeys() {
+  // Derive a key encryption key from user's passphrase
+  static async deriveKeyEncryptionKey(passphrase, salt) {
+    try {
+      const encoder = new TextEncoder();
+      const passphraseBuffer = encoder.encode(passphrase);
+      
+      const importedKey = await window.crypto.subtle.importKey(
+        'raw', 
+        passphraseBuffer, 
+        { name: 'PBKDF2' }, 
+        false, 
+        ['deriveBits', 'deriveKey']
+      );
+
+      return window.crypto.subtle.deriveKey(
+        {
+          name: 'PBKDF2',
+          salt: salt,
+          iterations: 250000, // Increased iterations for better security
+          hash: 'SHA-256'
+        },
+        importedKey,
+        { name: 'AES-GCM', length: 256 },
+        true,
+        ['encrypt', 'decrypt']
+      );
+    } catch (error) {
+      console.error('Error deriving key encryption key:', error);
+      throw error;
+    }
+  }
+
+  // Securely store encrypted private key
+  static async secureStorePrivateKey(privateKey, passphrase) {
+    try {
+      // Generate a cryptographically secure random salt
+      const salt = window.crypto.getRandomValues(new Uint8Array(16));
+      
+      // Derive key encryption key from passphrase
+      const keyEncryptionKey = await this.deriveKeyEncryptionKey(passphrase, salt);
+      
+      // Generate initialization vector
+      const iv = window.crypto.getRandomValues(new Uint8Array(12));
+      
+      // Convert private key to ArrayBuffer
+      const privateKeyBuffer = this._base64ToArrayBuffer(privateKey);
+      
+      // Encrypt private key
+      const encryptedPrivateKey = await window.crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        keyEncryptionKey,
+        privateKeyBuffer
+      );
+
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Store encrypted key with metadata
+      const encryptionMetadata = {
+        encryptedKey: this._arrayBufferToBase64(encryptedPrivateKey),
+        salt: this._arrayBufferToBase64(salt),
+        iv: this._arrayBufferToBase64(iv),
+        timestamp: new Date().toISOString()
+      };
+
+      localStorage.setItem(`${user.id}_encrypted_private_key`, JSON.stringify(encryptionMetadata));
+      return true;
+    } catch (error) {
+      console.error('Error securely storing private key:', error);
+      throw error;
+    }
+  }
+
+  // Retrieve and decrypt private key
+  static async retrievePrivateKey(passphrase) {
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Retrieve encrypted key metadata
+      const encryptedKeyData = localStorage.getItem(`${user.id}_encrypted_private_key`);
+      if (!encryptedKeyData) throw new Error('No encrypted private key found');
+
+      const { encryptedKey, salt, iv } = JSON.parse(encryptedKeyData);
+
+      // Derive key encryption key
+      const keyEncryptionKey = await this.deriveKeyEncryptionKey(
+        passphrase, 
+        this._base64ToArrayBuffer(salt)
+      );
+
+      // Decrypt private key
+      const decryptedPrivateKeyBuffer = await window.crypto.subtle.decrypt(
+        { 
+          name: 'AES-GCM', 
+          iv: this._base64ToArrayBuffer(iv) 
+        },
+        keyEncryptionKey,
+        this._base64ToArrayBuffer(encryptedKey)
+      );
+
+      // Convert decrypted key back to base64
+      return this._arrayBufferToBase64(decryptedPrivateKeyBuffer);
+    } catch (error) {
+      console.error('Error retrieving private key:', error);
+      throw new Error('Private key decryption failed. Check your passphrase.');
+    }
+  }
+
+  // Initialize keys with secure storage
+  static async initializeKeys(passphrase) {
     try {
       // Check if user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
 
-      // Check if user already has keys in local storage
-      const privateKey = localStorage.getItem(`${user.id}_private_key`);
+      // Check if encrypted key already exists
+      const existingEncryptedKey = localStorage.getItem(`${user.id}_encrypted_private_key`);
       
-      if (privateKey) {
+      if (existingEncryptedKey) {
         return true; // Keys are already set up
       }
 
-      // Generate new key pair for user
+      // Generate new key pair
       const { publicKey, privateKey } = await this.generateKeyPair();
 
-      // Store private key in local storage (encrypted with master password later)
-      localStorage.setItem(`${user.id}_private_key`, privateKey);
+      // Securely store private key with passphrase
+      await this.secureStorePrivateKey(privateKey, passphrase);
 
       // Store public key in database for other users to access
       const { error } = await supabase
@@ -97,15 +208,20 @@ class E2EEService {
       return data.public_key;
     } catch (error) {
       console.error('Error fetching public key:', error);
-      throw error;
+      throw new Error('Unable to retrieve public key for the specified user');
     }
   }
 
   // Encrypt message with recipient's public key
-  static async encryptMessage(message, publicKeyString) {
+  static async encryptMessage(message, recipientPublicKeyString) {
     try {
+      // Validate inputs
+      if (!message || !recipientPublicKeyString) {
+        throw new Error('Message and recipient public key are required');
+      }
+
       // Convert base64 string to ArrayBuffer
-      const publicKeyBuffer = this._base64ToArrayBuffer(publicKeyString);
+      const publicKeyBuffer = this._base64ToArrayBuffer(recipientPublicKeyString);
 
       // Import public key
       const publicKey = await window.crypto.subtle.importKey(
@@ -136,20 +252,20 @@ class E2EEService {
       return this._arrayBufferToBase64(encryptedBuffer);
     } catch (error) {
       console.error('Error encrypting message:', error);
-      throw error;
+      throw new Error('Message encryption failed');
     }
   }
 
   // Decrypt message with user's private key
-  static async decryptMessage(encryptedMessage) {
+  static async decryptMessage(encryptedMessage, passphrase) {
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Get private key from local storage
-      const privateKeyString = localStorage.getItem(`${user.id}_private_key`);
-      if (!privateKeyString) throw new Error('Private key not found');
+      // Retrieve and decrypt private key
+      const privateKeyString = await this.retrievePrivateKey(passphrase);
+      if (!privateKeyString) throw new Error('Private key retrieval failed');
 
       // Convert base64 string to ArrayBuffer
       const privateKeyBuffer = this._base64ToArrayBuffer(privateKeyString);
@@ -181,13 +297,18 @@ class E2EEService {
       return decoder.decode(decryptedBuffer);
     } catch (error) {
       console.error('Error decrypting message:', error);
-      return '[Decryption failed]';
+      throw new Error('Message decryption failed');
     }
   }
   
   // Encrypt a file before upload
-  static async encryptFile(file) {
+  static async encryptFile(file, recipientPublicKeyString) {
     try {
+      // Validate inputs
+      if (!file || !recipientPublicKeyString) {
+        throw new Error('File and recipient public key are required');
+      }
+
       // Generate a random symmetric key for file encryption
       const symmetricKey = await window.crypto.subtle.generateKey(
         {
@@ -225,9 +346,15 @@ class E2EEService {
         symmetricKey
       );
       
-      // Get current user and recipient public key
+      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
+      
+      // Encrypt the symmetric key with recipient's public key
+      const encryptedSymmetricKey = await this.encryptMessage(
+        this._arrayBufferToBase64(exportedKey), 
+        recipientPublicKeyString
+      );
       
       // Create a new file with encrypted content
       const encryptedFile = new File(
@@ -236,13 +363,14 @@ class E2EEService {
         { type: 'application/octet-stream' }
       );
       
-      // Store encryption metadata (key and IV) with the file
+      // Store encryption metadata
       const metadata = {
         iv: this._arrayBufferToBase64(iv),
-        key: this._arrayBufferToBase64(exportedKey),
+        encryptedSymmetricKey: encryptedSymmetricKey,
         originalType: file.type,
         encryptedBy: user.id,
-        encryptedAt: new Date().toISOString()
+        encryptedAt: new Date().toISOString(),
+        originalName: file.name
       };
       
       // Return encrypted file and metadata
@@ -252,12 +380,12 @@ class E2EEService {
       };
     } catch (error) {
       console.error('Error encrypting file:', error);
-      throw error;
+      throw new Error('File encryption failed');
     }
   }
   
   // Decrypt a file after download
-  static async decryptFile(encryptedFileUrl, metadata) {
+  static async decryptFile(encryptedFileUrl, metadata, passphrase) {
     try {
       // Parse metadata
       const parsedMetadata = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
@@ -266,9 +394,15 @@ class E2EEService {
       const response = await fetch(encryptedFileUrl);
       const encryptedFileBuffer = await response.arrayBuffer();
       
+      // Decrypt the symmetric key
+      const symmetricKeyBase64 = await this.decryptMessage(
+        parsedMetadata.encryptedSymmetricKey, 
+        passphrase
+      );
+      
       // Convert base64 strings back to ArrayBuffers
       const iv = this._base64ToArrayBuffer(parsedMetadata.iv);
-      const keyData = this._base64ToArrayBuffer(parsedMetadata.key);
+      const keyData = this._base64ToArrayBuffer(symmetricKeyBase64);
       
       // Import symmetric key
       const symmetricKey = await window.crypto.subtle.importKey(
@@ -302,7 +436,7 @@ class E2EEService {
       return decryptedFile;
     } catch (error) {
       console.error('Error decrypting file:', error);
-      throw error;
+      throw new Error('File decryption failed');
     }
   }
 
