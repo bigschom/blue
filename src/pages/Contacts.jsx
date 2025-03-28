@@ -646,7 +646,4 @@ const Contacts = () => {
   );
 };
 
-export default Contacts; { error } = await supabase
-        .from('contacts')
-        .delete()
-        .eq
+export default Contacts; 
