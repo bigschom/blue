@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabaseClient';
+import  supabase  from '../lib/supabaseClient';
 import E2EEService from '../services/E2EEService';
 import FileUploadService from '../services/FileUploadService';
 import Navigation from '../components/Navigation';

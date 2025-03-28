@@ -46,8 +46,8 @@ const Login = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <img src="/images/logo-dark.svg" alt="SecureChat Logo" className="auth-logo" />
-          <h1 className="auth-title">Sign in to SecureChat</h1>
+          <img src="logo.png" alt="BlueChat Logo" className="auth-logo" />
+          <h1 className="auth-title">Sign in to BlueChat</h1>
           <p className="auth-subtitle">
             End-to-end encrypted messaging for everyone
           </p>
@@ -122,7 +122,7 @@ const Login = () => {
         </form>
         
         <div className="auth-divider">
-          <span>New to SecureChat?</span>
+          <span>New to BlueChat?</span>
         </div>
         
         <Link to="/register" className="auth-secondary-button">

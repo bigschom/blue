@@ -102,10 +102,10 @@ const Register = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <img src="/images/logo-dark.svg" alt="SecureChat Logo" className="auth-logo" />
+          <img src="logo.png" alt="BlueChat Logo" className="auth-logo" />
           <h1 className="auth-title">Create your account</h1>
           <p className="auth-subtitle">
-            Join SecureChat for private, encrypted messaging
+            Join BlueChat for private, encrypted messaging
           </p>
         </div>
         
